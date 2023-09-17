@@ -156,38 +156,6 @@ class Graph:
         print(f"number of expand(s): {expansions}")
         return path
     
-    def bellman_ford(self, start, goal):
-        # Initialize distances and predecessors
-        distances = {node: float('inf') for node in self.nodes}
-        predecessors = {node: None for node in self.nodes}
-        distances[start] = 0
-
-        # Relax edges repeatedly
-        for _ in range(len(self.nodes) - 1):
-            for node1 in self.nodes:
-                for node2, weight in self.edges[node1].items():
-                    if distances[node1] + weight < distances[node2]:
-                        distances[node2] = distances[node1] + weight
-                        predecessors[node2] = node1
-
-        # Check for negative weight cycles
-        for node1 in self.nodes:
-            for node2, weight in self.edges[node1].items():
-                if distances[node1] + weight < distances[node2]:
-                    raise ValueError("Graph contains a negative weight cycle")
-
-        print('Bellman-Ford Algorithm:')
-        print('Shortest from: (distance)')
-        for node, distance in distances.items():
-            path = []
-            current_node = node
-            while current_node is not None:
-                path.insert(0, current_node)
-                current_node = predecessors[current_node]
-            print(f"\t{start} to {node}\t: ({distance})\t{path}")
-
-        return distances, predecessors
-
     def floyd_warshall(self, start, goal):
         # Initialize the distance matrix with infinity for all pairs of nodes
         distance = list(map(lambda i: list(map(lambda j: j, i)), self.adjacency_matrix()))
@@ -207,39 +175,48 @@ class Graph:
         return distance
 
 def input_graph(g):
-    g.add_node("v1", 17)
-    g.add_node("v2", 10.8166538264)  # c = √(9^2 + 6^2)
-    g.add_node("v3", 9)
-    g.add_node("v4", 11.401754251)  # c = √(9^2 + 7^2)
-    g.add_node("v5", 8.5440037453)  # c = √(8^2 + 3^2)
-    g.add_node("v6", 8)
-    g.add_node("v7", 8.94427191)  # c = √(8^2 + 4^2)
-    g.add_node("v8", 8)
-    g.add_node("v9", 2)
-    g.add_node("v10", 4)
+    g.add_node("v1", 4)
+    g.add_node("v2", 3.1622776602)  # c = √(3^2 + 1^2)
+    g.add_node("v3", 3)
+    g.add_node("v4", 3.1622776602)  # c = √(3^2 + 1^2)
+    g.add_node("v5", 2.2360679775)  # c = √(2^2 + 1^2)
+    g.add_node("v6", 2)
+    g.add_node("v7", 2.2360679775)  # c = √(2^2 + 1^2)
+    g.add_node("v8", 1)
+    g.add_node("v9", 1)
+    g.add_node("v10", 1)
     g.add_node("v11", 0)
 
     g.add_edge("v1", "v2", 2)
     g.add_edge("v1", "v3", 8)
     g.add_edge("v1", "v4", 1)
+
     g.add_edge("v2", "v3", 6)
     g.add_edge("v2", "v5", 1)
+
     g.add_edge("v3", "v4", 7)
     g.add_edge("v3", "v5", 5)
     g.add_edge("v3", "v6", 1)
     g.add_edge("v3", "v7", 2)
+
     g.add_edge("v4", "v7", 9)
+
     g.add_edge("v5", "v6", 3)
     g.add_edge("v5", "v8", 2)
     g.add_edge("v5", "v9", 9)
+
     g.add_edge("v6", "v7", 4)
     g.add_edge("v6", "v9", 6)
+
     g.add_edge("v7", "v9", 3)
     g.add_edge("v7", "v10", 1)
+
     g.add_edge("v8", "v9", 7)
-    g.add_edge("v8", "v11", 2)
+    g.add_edge("v8", "v11", 9)
+
     g.add_edge("v9", "v10", 1)
     g.add_edge("v9", "v11", 2)
+    
     g.add_edge("v10", "v11", 4)
 
 def seperator():
@@ -257,8 +234,6 @@ def main():
     g.a_star_search(start, goal)
     seperator()
     g.dijkstra(start, goal)
-    seperator()
-    g.bellman_ford(start, goal)
     seperator()
     g.floyd_warshall(start, goal)
 
