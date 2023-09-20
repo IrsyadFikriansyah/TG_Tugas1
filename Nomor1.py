@@ -5,6 +5,7 @@
 
 from queue import PriorityQueue
 
+
 class Graph:
     def __init__(self):
         self.nodes = set()
@@ -43,7 +44,8 @@ class Graph:
 
         # Initialize the matrix with infinity (or any large number)
         matrix_size = len(sorted_nodes)
-        adjacency_matrix = [[float('inf')] * matrix_size for _ in range(matrix_size)]
+        adjacency_matrix = [
+            [float('inf')] * matrix_size for _ in range(matrix_size)]
 
         # Fill in the matrix with edge weights
         for i in range(matrix_size):
@@ -51,7 +53,8 @@ class Graph:
             for j in range(matrix_size):
                 node_j = sorted_nodes[j]
                 if node_i == node_j:
-                    adjacency_matrix[i][j] = 0  # Diagonal elements are set to 0
+                    # Diagonal elements are set to 0
+                    adjacency_matrix[i][j] = 0
                 elif node_j in self.edges[node_i]:
                     adjacency_matrix[i][j] = self.edges[node_i][node_j]
 
@@ -123,7 +126,8 @@ class Graph:
             visited_nodes.add(current_node)
 
             for neighbor in self.edges[current_node]:
-                distance = current_distance + self.get_weight(current_node, neighbor)
+                distance = current_distance + \
+                    self.get_weight(current_node, neighbor)
 
                 # If we find a shorter path to the neighbor, update the distance and predecessor
                 if distance < distances[neighbor]:
@@ -137,10 +141,9 @@ class Graph:
                     while temp_node is not None:
                         current_path.insert(0, temp_node)
                         temp_node = predecessors[temp_node]
-                    
+
                     path_str = ' -> '.join(current_path)
                     print(f"Dijkstra path: {path_str}")
-
 
         # Construct the path from start to goal
         path = []
@@ -155,24 +158,105 @@ class Graph:
         print(f"number of visited node(s): {len(visited_nodes)}")
         print(f"number of expand(s): {expansions}")
         return path
-    
-    def floyd_warshall(self, start, goal):
-        # Initialize the distance matrix with infinity for all pairs of nodes
-        distance = list(map(lambda i: list(map(lambda j: j, i)), self.adjacency_matrix()))
 
-            # Adding vertices individually
+    def bellman_ford(self, start, goal):
+        # Initialize the distance vector with infinity for all nodes
+        distance = {node: float('inf') for node in self.nodes}
+        distance[start] = 0
+        predecessors = {node: None for node in self.nodes}
+
+        # Relax the edges repeatedly
+        for _ in range(len(self.nodes) - 1):
+            for node1 in self.nodes:
+                for node2 in self.edges[node1]:
+                    edge_weight = self.get_weight(node1, node2)
+                    # If the distance to the destination can be shortened by taking the current edge, update the distance
+                    if distance[node1] + edge_weight < distance[node2]:
+                        distance[node2] = distance[node1] + edge_weight
+
+        # Check for negative-weight cycles
+        for node1 in self.nodes:
+            for node2 in self.edges[node1]:
+                assert distance[node2] <= distance[node1] + \
+                    self.get_weight(node1, node2)
+
+        # Construct the path from start to goal
+        path = []
+        current_node = goal  # Start from the goal
+        while current_node is not None:
+            path.insert(0, current_node)
+            current_node = predecessors[current_node]
+
+        if distance[goal] == float('inf'):
+            print("Tidak ada jalur yang ditemukan dari", start, "ke", goal)
+            return None  # No path found
+        else:
+            path_str = ' -> '.join(path)
+        print(f"\nBellman Ford: {path_str}")
+        print(f"total distance: {distance[goal]}")
+        print(f"number of visited node(s): {len(self.nodes)}")
+        print(f"number of expand(s): {len(self.nodes) - 1}")
+        return path
+
+    def johnson(self):
+        # Add a new node with edges to all other nodes with zero weight
+        self.add_node('0')
+        for node in self.nodes:
+            if node != '0':
+                self.add_edge('0', node, 0)
+
+        # Run Bellman-Ford algorithm to get the distance from the new node to all other nodes
+        distance_from_zero = self.bellman_ford('0')
+
+        # Remove the new node
+        self.nodes.remove('0')
+        del self.edges['0']
+
+        # Re-weight the edges
+        for node1 in self.nodes:
+            for node2 in self.edges[node1]:
+                self.edges[node1][node2] += distance_from_zero[node1] - \
+                    distance_from_zero[node2]
+
+        # Initialize the distance matrix with infinity for all pairs of nodes
+        distance = list(
+            map(lambda i: list(map(lambda j: j, i)), self.adjacency_matrix()))
+
+        # Adding vertices individually
         for k in range(len(self.nodes)):
             for i in range(len(self.nodes)):
                 for j in range(len(self.nodes)):
-                    distance[i][j] = min(distance[i][j], distance[i][k] + distance[k][j])
+                    distance[i][j] = min(
+                        distance[i][j], distance[i][k] + distance[k][j])
+
+        # Print the adjacency matrix
+        print('Johnson Algorithm:')
+        print('Distance matrix every node:')
+        for row in distance:
+            print(f'\t{row}')
+
+        return distance
+
+    def floyd_warshall(self, start, goal):
+        # Initialize the distance matrix with infinity for all pairs of nodes
+        distance = list(
+            map(lambda i: list(map(lambda j: j, i)), self.adjacency_matrix()))
+
+        # Adding vertices individually
+        for k in range(len(self.nodes)):
+            for i in range(len(self.nodes)):
+                for j in range(len(self.nodes)):
+                    distance[i][j] = min(
+                        distance[i][j], distance[i][k] + distance[k][j])
 
         # Print the adjacency matrix
         print('Floyd Warshall Algorithm:')
         print('Distance matrix every node:')
         for row in distance:
             print(f'\t{row}')
-        
+
         return distance
+
 
 def input_graph(g):
     g.add_node("v1", 4)
@@ -216,13 +300,15 @@ def input_graph(g):
 
     g.add_edge("v9", "v10", 1)
     g.add_edge("v9", "v11", 2)
-    
+
     g.add_edge("v10", "v11", 4)
+
 
 def seperator():
     for _ in range(50):
         print('~', end='')
     print('\n\n')
+
 
 def main():
     g = Graph()
@@ -235,8 +321,10 @@ def main():
     seperator()
     g.dijkstra(start, goal)
     seperator()
+    g.bellman_ford(start, goal)
+    seperator()
     g.floyd_warshall(start, goal)
+
 
 if __name__ == "__main__":
     main()
-
